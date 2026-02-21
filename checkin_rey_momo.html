@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>REY MOMO — Check-In Offline</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #14141e;
+    --surface2: #1c1c2e;
+    --border: #2a2a40;
+    --accent: #f5c842;
+    --accent2: #ff6b35;
+    --green: #22c55e;
+    --green-dim: #16a34a22;
+    --text: #e8e8f0;
+    --muted: #7070a0;
+    --danger: #ef4444;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #1a0a00 0%, #0a0a1a 60%, #0d0a00 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    gap: 12px;
+  }
+
+  .header-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .header-title span {
+    color: var(--accent2);
+  }
+
+  .header-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+  }
+
+  .header-stats {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .stat-pill {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .stat-pill .num {
+    font-weight: 700;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    margin-right: 4px;
+  }
+
+  .stat-pill.checked { border-color: var(--green); color: var(--green); }
+  .stat-pill.total { color: var(--accent); border-color: var(--accent); }
+
+  /* SEARCH */
+  .search-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    position: sticky;
+    top: 73px;
+    z-index: 99;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .search-wrap {
+    position: relative;
+    flex: 1;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 16px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px 11px 40px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input[type="text"]:focus {
+    border-color: var(--accent);
+  }
+
+  input[type="text"]::placeholder { color: var(--muted); }
+
+  .clear-btn {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--muted);
+    padding: 11px 16px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .clear-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+  .filter-btn {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--muted);
+    padding: 11px 16px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .filter-btn.active { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+
+  /* RESULTS INFO */
+  .results-info {
+    padding: 10px 20px;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* RESERVATION CARDS */
+  .reservations-list {
+    padding: 16px 16px 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .reservation-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .reservation-card.fully-checked {
+    border-color: var(--green);
+  }
+
+  .reservation-card.partially-checked {
+    border-color: #ca8a04;
+  }
+
+  .card-header {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .card-header:active { background: var(--surface2); }
+
+  .titular-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    color: #000;
+    flex-shrink: 0;
+  }
+
+  .card-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .titular-name {
+    font-weight: 600;
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .confirmation-id {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    font-family: monospace;
+  }
+
+  .card-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .people-count {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .checkin-progress {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .checkin-progress.all-done { color: var(--green); font-weight: 700; }
+
+  .expand-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 12px;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  .reservation-card.open .expand-icon {
+    transform: rotate(180deg);
+  }
+
+  /* PARTICIPANTS */
+  .participants-panel {
+    display: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .reservation-card.open .participants-panel {
+    display: block;
+  }
+
+  .participant-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border)33;
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+
+  .participant-row:last-child { border-bottom: none; }
+
+  .participant-row:active { background: var(--surface2); }
+
+  .participant-row.checked {
+    background: var(--green-dim);
+  }
+
+  .check-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    font-size: 14px;
+    background: var(--surface2);
+  }
+
+  .participant-row.checked .check-circle {
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+  }
+
+  .participant-name {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .participant-row.checked .participant-name {
+    text-decoration: line-through;
+    color: var(--muted);
+  }
+
+  .checkin-time {
+    font-size: 11px;
+    color: var(--green);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+
+  .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state h3 { font-size: 18px; margin-bottom: 8px; color: var(--text); }
+
+  /* FLOATING EXPORT BTN */
+  .fab {
+    position: fixed;
+    bottom: 24px;
+    right: 20px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 14px;
+    padding: 14px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 20px #f5c84244;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .fab:active { transform: scale(0.96); }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--green);
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 12px 24px;
+    border-radius: 30px;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 200;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* HIGHLIGHT */
+  mark {
+    background: #f5c84255;
+    color: var(--accent);
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+
+  @media (min-width: 600px) {
+    .reservations-list { padding: 20px 24px 100px; }
+    header { padding: 18px 24px; }
+    .search-bar { padding: 14px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-title">REY <span>MOMO</span></div>
+  <div class="header-stats">
+    <div class="stat-pill total"><span class="num" id="totalCount">0</span> reservas</div>
+    <div class="stat-pill checked"><span class="num" id="checkedCount">0</span> ✓ check-in</div>
+  </div>
+  <div class="header-badge">⚡ OFFLINE</div>
+</header>
+
+<div class="search-bar">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Buscar titular, participante o confirmación..." autocomplete="off" autocorrect="off" spellcheck="false">
+  </div>
+  <button class="filter-btn" id="filterPending" onclick="toggleFilter()">Solo pendientes</button>
+
+</div>
+
+<div class="results-info" id="resultsInfo"></div>
+
+<div class="reservations-list" id="reservationsList"></div>
+
+<div class="empty-state" id="emptyState" style="display:none">
+  <div class="icon">🎭</div>
+  <h3>Sin resultados</h3>
+  <p>Intenta con otro nombre o número de confirmación</p>
+</div>
+
+<button class="fab" onclick="exportLog()">📋 Exportar log</button>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = [{"id": "1566601197511412", "titular": "Stephanie  Rodríguez Gomez", "num_people": 0, "participants": ["Perla Ruiz", "Stephanie  Rodríguez Gomez"]}, {"id": "1566601201476082", "titular": "Cesarina V. Lappot Guzmán", "num_people": 4, "participants": ["Ashley  Ravelo", "Cesarina V. Lappot Guzmán", "James Ravelo", "Jordan Ravelo García"]}, {"id": "1566601204122167", "titular": "Anyel Ledesma", "num_people": 4, "participants": ["Alaia Ledesma", "Anyel Ledesma", "Ianna Roman", "Maria Reinoso"]}, {"id": "1566601205253510", "titular": "Nicole Sanlley", "num_people": 2, "participants": ["Jehisa Mejia", "Nicole Sanlley"]}, {"id": "1566601208756206", "titular": "Philippe  Furstenberg", "num_people": 1, "participants": ["Philippe  Furstenberg"]}, {"id": "1566601209374699", "titular": "EDWIN ALMANZAR", "num_people": 0, "participants": ["EDWIN ALMANZAR", "Fiordalisa Pozo"]}, {"id": "1566601209533666", "titular": "Eunice St Laurent", "num_people": 3, "participants": ["Eunice St Laurent", "Hadassah St Eloy", "Maginot St Eloy"]}, {"id": "1566601209799024", "titular": "Danilda Santana", "num_people": 1, "participants": ["Danilda Santana"]}, {"id": "1566601211963508", "titular": "Emmanuel Garcia", "num_people": 7, "participants": ["Alena Martinez", "Emmanuel Garcia", "Emmanuel Alberto Garcia", "Estel Victoria Garcia", "Iris Garcia", "Maite Martinez", "Melissa Martinez"]}, {"id": "1566601212124742", "titular": "MARIA ALVAREZ", "num_people": 6, "participants": ["ADELA ROMERO", "ALEXANDER SAVINON", "Luis Saviñón", "MARIA ALVAREZ", "MIGUEL ANGEL HERNANDO", "ZAIDA DE HERNANDO"]}, {"id": "1566601217368219", "titular": "Erbidio Amaro", "num_people": 4, "participants": ["Alvaro Roces", "Ana Gómez", "Anna Amaro", "Erbidio Amaro"]}, {"id": "1566601217372677", "titular": "Rafael de Rojas", "num_people": 4, "participants": ["Cristina de Rojas", "Luis Saviñón", "Pilar Lacueva", "Rafael de Rojas"]}, {"id": "1566601219009557", "titular": "Jose Manuel Reyes  Malla", "num_people": 4, "participants": ["Jose Manuel Reyes  Malla", "Margarita Reyes Malla", "Rosalinda Reyes Malla", "Tamika de Reyes Grimpel"]}, {"id": "1566601219181531", "titular": "Andres Rosario", "num_people": 1, "participants": ["Andres Rosario"]}, {"id": "1566601222525814", "titular": "Rafael Suncar", "num_people": 2, "participants": ["Anauris Agramonte", "Rafael Suncar"]}, {"id": "1566601222840081", "titular": "MAUREEN LA ROSA DE BERMUDEZ", "num_people": 3, "participants": ["ALEXANDER MAX FERNANDEZ BERMUDEZ", "MAUREEN LA ROSA DE BERMUDEZ", "OSCAR BERMUDEZ LIRA"]}, {"id": "1566601231391652", "titular": "Anabelle Medina", "num_people": 3, "participants": ["Anabelle Medina", "Daniel Tolentino", "Joel Tolentino"]}, {"id": "1566601233436411", "titular": "Maria Gabriela Cardona Chaparro", "num_people": 1, "participants": ["Maria Gabriela Cardona Chaparro"]}, {"id": "1566601234012463", "titular": "Kety Alexandra De La Rosa", "num_people": 2, "participants": ["Jorge  manuel Montilla", "Kety Alexandra De La Rosa"]}, {"id": "1566601236855212", "titular": "Andrea  Vasquez Hilario", "num_people": 4, "participants": ["Alonso Reinosos Camacho", "Anatoly Reinoso de Leon", "Mayeline Camacho Gómez", "Sandra Gomez Lama"]}, {"id": "1566601238892716", "titular": "Jessica paola Bonilla de armas", "num_people": 2, "participants": ["Jessica paola Bonilla de armas", "Michael Subero"]}, {"id": "1566601239218449", "titular": "Flavio Andreatta", "num_people": 5, "participants": ["Camila Terrero", "Emely Terrero", "Flavio Andreatta", "Nicol Moquete", "Pilar  Nuñez"]}, {"id": "1566601239881503", "titular": "Sofia Osses", "num_people": 1, "participants": ["Sofia Osses"]}, {"id": "1566601241348032", "titular": "Lien  Gonzalez Sanx", "num_people": 2, "participants": ["Karla Demorizi", "Vanessa Espaillat"]}, {"id": "1566601242118255", "titular": "Larry Spencer", "num_people": 1, "participants": ["Larry Spencer"]}, {"id": "1566601244767243", "titular": "RUBEN DARIO DIAZ DE LOS SANTOS -", "num_people": 4, "participants": ["Angee Marte", "Edgar Montas", "Gaby Diaz", "RUBEN DARIO DIAZ DE LOS SANTOS -"]}, {"id": "1566601245993970", "titular": "Gabriel  Morin", "num_people": 4, "participants": ["David Arencibia", "Gabriel  Morin", "Lien González", "Magaly Sanz"]}, {"id": "1566601248901517", "titular": "Carol Díaz", "num_people": 4, "participants": ["Carol Díaz", "Jimena Camacho", "Michel Camacho", "Sara Camacho"]}, {"id": "1566601254499428", "titular": "Carlos Yunén", "num_people": 2, "participants": ["Carlos Yunén", "Rosario Aróstegui de Yunén"]}, {"id": "1566601257133377", "titular": "Nieves Alexandra Inirio", "num_people": 2, "participants": ["Nieves Alexandra Inirio", "Rafael Cedano"]}, {"id": "1566601257493978", "titular": "Julio Diaz", "num_people": 8, "participants": ["Ana Díaz", "Familia Abreu", "Hija Abreu", "Hija 2 Abreu", "Jose Abreu", "Julio Diaz", "Julio Diaz Guest 1", "Julio Diaz Guest 2"]}, {"id": "1566601263605229", "titular": "Jose Rodriguez", "num_people": 5, "participants": ["Alana Peralta", "Britany Diaz", "Ely Peralta", "Jose Rodriguez", "Miguel a Rodriguez"]}, {"id": "1566601265642405", "titular": "Castalia Ysolina Martinez Sanchez", "num_people": 2, "participants": ["Castalia Ysolina Martinez Sanchez", "Vivianny Franchesca Perez Martinez"]}, {"id": "1566601267009627", "titular": "Ambar Santiago", "num_people": 10, "participants": ["Ambar Santiago", "Amelia Matos", "Braulio Matos", "Briana Matos", "Cristal Bencosme", "Derek Bautista", "Franklin Bautista", "Franklin Ricardo Bautista", "Gilber Hernandez", "Norma Garcia"]}, {"id": "1566601267696861", "titular": "Elaine Yanet Peña Angeles", "num_people": 2, "participants": ["Elaine Yanet Peña Angeles", "Yanelsi Margarita Peña Angeles"]}, {"id": "1566601273230494", "titular": "Murad Dixon", "num_people": 2, "participants": ["Almitra Berry", "Murad Dixon"]}, {"id": "1566601275741400", "titular": "Jose Gomez", "num_people": 2, "participants": ["Jose Gomez", "Mercedes Ricart"]}, {"id": "1566601281357442", "titular": "Katherine Quinto", "num_people": 2, "participants": ["Katherine Quinto", "Priscilla Perez"]}, {"id": "1566601281522359", "titular": "Vielka Tejeda Aguasvivas", "num_people": 2, "participants": ["Adairis Minyeti", "Vielka Tejeda Aguasvivas"]}, {"id": "1566601281721446", "titular": "Manuel Enrique Fernandez cruz", "num_people": 5, "participants": ["Dana Dominguez", "Jhon Quinn", "Manuel Enrique Fernandez cruz", "Manuel osvaldo Fernandez", "Mercedes Rodriguez"]}, {"id": "1566601282597668", "titular": "Mariela Santana", "num_people": 2, "participants": ["Leandro P. Castillo", "Mariela Santana"]}, {"id": "1566601282665724", "titular": "Alma Martinez", "num_people": 4, "participants": ["Alma Martinez", "Camila Martinez", "Israel Martinez", "Liam Martinez"]}, {"id": "1566601283889473", "titular": "Ana Díaz", "num_people": 4, "participants": ["Ana Díaz", "José Alejandro Beras Diaz", "Joseph Beras", "Luis Alosnso Beras Diaz"]}, {"id": "1566601284256367", "titular": "Castiria Espinal", "num_people": 6, "participants": ["Castiria Espinal", "Elian Pérez", "Elias Pérez E", "Elias Pérez R", "Eliasar Pérez", "Eliezer Pérez"]}, {"id": "1566601285083573", "titular": "Eric Rodríguez", "num_people": 3, "participants": ["Bellamires Paredes", "Julio Adolfo Rodriguez", "Julio Cesar Rodríguez"]}, {"id": "1566601285582515", "titular": "Joonette Mota", "num_people": 2, "participants": ["Joonette Mota", "Morelia Jimenez"]}, {"id": "1566601287525227", "titular": "Brislin Manzano", "num_people": 3, "participants": ["Amalia rocio Ubiera salvador", "Brislin Manzano", "Robinson Ubiera lovera"]}, {"id": "1566601287951378", "titular": "Claridania Mercado", "num_people": 6, "participants": ["Alex Mejia", "Ana Hilda Bardera", "Claridania Mercado", "Lana Mejia", "Laura Rodriguez", "Nicolas Mejia"]}, {"id": "1566601289113018", "titular": "Patricia Flores", "num_people": 14, "participants": ["Bela Szabo", "Cecile Thomas", "Helena Flores", "Helena Pignol", "Isabela Szabo", "Laura Calventi", "Lionel Thomas", "Lucy Thomas", "Maribel Flores", "Mery Brugal", "Mia Mauguy", "Narcisa Benoit", "Pascal Mauguy", "Patricia Flores"]}, {"id": "1566601289771526", "titular": "Natividad Pérez", "num_people": 2, "participants": ["Janel Guerrero", "Natividad Pérez"]}, {"id": "1566601291292605", "titular": "Rosa Melo", "num_people": 3, "participants": ["Emma sofia Gonzalez", "Leonardo Gonzalez", "Rosa Melo"]}, {"id": "1566601291445066", "titular": "Pedro André  Michel Castillo", "num_people": 2, "participants": ["Pedro André  Michel Castillo", "Yessica Castillo De Michel"]}, {"id": "1566601291714702", "titular": "Nicaurys Ortiz", "num_people": 4, "participants": ["Alex Lora", "Analy Lora", "Emily Lora", "Nicaurys Ortiz"]}, {"id": "1566601293090194", "titular": "Yocaidi Montas", "num_people": 3, "participants": ["Eduardo Rijo", "Emy sophie Rijo", "Yocaidi Montas"]}, {"id": "1566601294284948", "titular": "NIah Richardson", "num_people": 1, "participants": ["NIah Richardson"]}, {"id": "1566601294914086", "titular": "Rogelio Vinals Baez", "num_people": 2, "participants": ["Alejandra Benitez", "Rogelio Vinals Baez"]}, {"id": "1566601294985722", "titular": "Rolf Eckstein", "num_people": 2, "participants": ["Lilia Maria Almonte Kniping de Eckstein", "Rolf Eckstein"]}, {"id": "1566601295569547", "titular": "Gabriela Bueno", "num_people": 3, "participants": ["Ela Rojas", "Gabriela Bueno", "Valeria Rojas"]}, {"id": "1566601296142711", "titular": "Carolina Martínez", "num_people": 8, "participants": ["Alan Reyes Hernandez", "Carolina Martínez", "Edward Rodríguez Martínez", "Genesis Rodríguez Martínez", "Gianna Rodríguez Martínez", "Irina Hernandez Vallejo", "Isabella Reyes Hernandez", "Josué Rodriguez Vallejo"]}, {"id": "1566601297454694", "titular": "Taulin Mojica", "num_people": 4, "participants": ["Alberto Rijo", "Georgina Rijo", "Starlin Rijo", "Taulin Mojica"]}, {"id": "1566601297494969", "titular": "Franchesca Cordero Paulino", "num_people": 2, "participants": ["Arlenys Del Orbe", "Franchesca Cordero Paulino"]}, {"id": "1566601297797263", "titular": "SANDRA  ACEVEDO", "num_people": 2, "participants": ["Jaqueline Acevedo", "SANDRA  ACEVEDO"]}, {"id": "1566601298155325", "titular": "EMMANUEL GOMEZ OLIVERO", "num_people": 3, "participants": ["EMMANUEL GOMEZ OLIVERO", "ISMAEL GOMEZ HOLGUIN", "KAREM Holguín Veras"]}, {"id": "1566601298487743", "titular": "Islaine Bello", "num_people": 2, "participants": ["Islaine Bello", "Ruben Manuel Sanatana Espiritusanto"]}, {"id": "1566601299502195", "titular": "Biviana Baez reyes", "num_people": 4, "participants": ["Biviana Baez reyes", "Wuriane Martínez", "Yerlis Baez", "Yreno Colon"]}, {"id": "1566601302662908", "titular": "Melissa Breton", "num_people": 2, "participants": ["Melissa Breton", "Tomeka Soremekun"]}, {"id": "1566601302720926", "titular": "Megan Collado", "num_people": 1, "participants": ["Megan Collado"]}, {"id": "1566601303555206", "titular": "Brislin Manzano", "num_people": 4, "participants": ["Aneury santana Peña", "Clara Ramirez", "Jessica De la rosa", "Julio alfredo de la cruz"]}, {"id": "1566601303628329", "titular": "SANDRA  ACEVEDO", "num_people": 1, "participants": ["SANDRA  ACEVEDO"]}, {"id": "1566601303879692", "titular": "Leidy Laura Florian castillo", "num_people": 10, "participants": ["Caroll Florian", "Cinthia Seguie", "Fernando Florian", "Lara Seguie", "Leidy Laura Florian castillo", "Leslie Florian", "Lian Seguie", "Mignolia Seguie", "Miledys Castillo", "Nicolas Seguie"]}, {"id": "1566601304355083", "titular": "Carmen Amell", "num_people": 7, "participants": ["Carmen Amell", "Cesar Melo", "Julie Ballesteros", "Julie Fiegoli", "Luke Ballesteros", "Nicholas Fiegoli", "Saul Ballesteros"]}, {"id": "1566601306092807", "titular": "Pedro André  Michel Castillo", "num_people": 2, "participants": ["Pedro André  Michel Castillo", "Sofia Isabel Michel Castillo"]}, {"id": "1566601306464975", "titular": "Raysa Leonardo", "num_people": 3, "participants": ["Keila Herrera", "Raysa Leonardo", "Ruth Emiliano"]}, {"id": "1566601307083661", "titular": "Janilda Germán", "num_people": 3, "participants": ["Adiel Sabala", "Janilda Germán", "Ramon Sabala"]}, {"id": "1566601308549880", "titular": "Graciela Gonzalez", "num_people": 10, "participants": ["Betsaira Rodriguez", "Carol Coll", "Dulce Morillo", "Erick Hernandez", "Esther felis", "Graciela Gonzalez", "Graciela Gonzalez Guest 1", "Graciela Gonzalez Guest 2", "Nuri Santana", "Wendy Thomas"]}, {"id": "1566601309323956", "titular": "Solans Rodriguez", "num_people": 1, "participants": ["Solans Rodriguez"]}, {"id": "1566601312207924", "titular": "Claude Martin", "num_people": 4, "participants": ["Claude Martin", "Maria Del Rosario", "Olga Martinez", "Tom Zito"]}, {"id": "1566601312520892", "titular": "Sorivel Florian Vasquez", "num_people": 3, "participants": ["Luisaira Florian Vasquez", "Sorivel Florian Vasquez", "Zoraida Vásquez"]}, {"id": "1566601313398176", "titular": "Griset Cruz", "num_people": 4, "participants": ["Carmen Pantaleon Ramirez", "Griset Cruz", "Leonardo Nadal Brown", "Leonardo Nadal Cruz"]}, {"id": "1566601316907213", "titular": "Yuliana Sanchez", "num_people": 5, "participants": ["Gladys Hernandez de Sanchez", "Juan Ulloa", "Julieta Ulloa", "Julio Ulloa", "Yuliana Sanchez"]}, {"id": "1566601319841585", "titular": "Angel Romy Herasme Martinez", "num_people": 2, "participants": ["Catherinne Maxielys Rijo Garcia", "Javier Guerrero"]}, {"id": "1566602012066449", "titular": "Brislin Manzano", "num_people": 1, "participants": ["Brislin Manzano"]}, {"id": "1566602012753205", "titular": "CANDACE O'Quinn", "num_people": 2, "participants": ["CANDACE O'Quinn", "Carlos Linhares"]}, {"id": "1566602014377157", "titular": "Severiano Alcantara", "num_people": 4, "participants": ["Felix Alcántara", "Jennifer Kassandra Alcántara", "Sandra Castillo", "Severiano Alcantara"]}, {"id": "1566602014737374", "titular": "Angela Marmolejos", "num_people": 2, "participants": ["Angela Marmolejos", "Gilberto Objío"]}, {"id": "1566602016559905", "titular": "Juan Pablo De La Cruz Bueno", "num_people": 6, "participants": ["Amelia De La Cruz Lockhart", "ELIZABETH LOCKHART", "Juan Pablo De La Cruz Bueno", "JUAN PABLO DE LA CRUZ LOCKHART", "MARIA ELIZABETH DE LA CRUZ LOCKHART", "NAOMI DE LA CRUZ LOCKHART"]}, {"id": "1566602021555818", "titular": "Yuliana Taveras", "num_people": 3, "participants": ["Athenas Ferreira", "HEIDI SURIEL", "Yuliana Taveras"]}, {"id": "1566602023387956", "titular": "José Manuel Mercedes", "num_people": 2, "participants": ["Adamaris Caraballo Ventura", "Fernanda Espinal"]}, {"id": "1566602025350154", "titular": "Ana Rosa  Ramirez", "num_people": 6, "participants": ["Ana Rosa  Ramirez", "Hannah Ramirez", "Hellen Ramirez", "Nelson Ramirez", "Ramona Cruz"]}, {"id": "1566602026130412", "titular": "Ana Rosa  Ramirez", "num_people": 3, "participants": ["Belkys Crisostomo", "Clara Estévez", "Feliz Ramos"]}, {"id": "1566602026211440", "titular": "Dahiana Payamps", "num_people": 3, "participants": ["Barbara Tomaszek", "Dahiana Payamps", "Dylan Payamps"]}, {"id": "1566602026936234", "titular": "Roxanna Cosme", "num_people": 3, "participants": ["Rafael Taveras", "Roxanna Cosme", "Vanessa Taveras"]}, {"id": "1566602027736581", "titular": "Meryl Jimenez", "num_people": 3, "participants": ["Aristofanes Montes De Oca", "Emir Ramos", "Meryl Jimenez"]}, {"id": "1566602029960841", "titular": "Tomiris Estepan", "num_people": 2, "participants": ["Roberto Buso", "Tomiris Estepan"]}, {"id": "1566602031896810", "titular": "Dolis Hernández", "num_people": 2, "participants": ["Dolis Hernández", "Rubi Rodriguez"]}, {"id": "1566602032762792", "titular": "Juan Alejandro Sanchez", "num_people": 3, "participants": ["Alexandra Carrasquel", "Jessica Carrasquel", "Juan Alejandro Sanchez"]}, {"id": "1566602033337796", "titular": "Yoel Perez", "num_people": 2, "participants": ["Jenny Jimenez ariza", "Yoel Perez"]}, {"id": "1566602033866821", "titular": "Ariel  Vidales", "num_people": 2, "participants": ["Ariel  Vidales", "Melvy geovanna Romero Guzmán"]}, {"id": "1566602036302250", "titular": "Kevin Feliz", "num_people": 3, "participants": ["Analia Feliz", "Kevin Feliz", "Lizanna Ramirez"]}, {"id": "1566602036438443", "titular": "Maria Padilla", "num_people": 2, "participants": ["Maria Padilla", "Melania Paez"]}, {"id": "1566602036651521", "titular": "Shari Bezi", "num_people": 9, "participants": ["Gael Febles", "Gustavo Febles", "Jacqueline Lora", "Joan Carles", "Leina Bezi", "Mia Febles", "Miguel Bezi", "Pol Carles", "Shari Bezi"]}, {"id": "1566602036669072", "titular": "Laura Thevenin", "num_people": 5, "participants": ["LAURA THEVENIN", "Marcella Abou Ghannam", "MAXIMA ABOU GHANNAM", "Mazen Abou Ghannam", "Sarah Abou Ghannam"]}, {"id": "1566602039470104", "titular": "Freddy Figueroa", "num_people": 2, "participants": ["Evangeline Federo", "Freddy Figueroa"]}, {"id": "1566602039856600", "titular": "Amaia Segovia Perez", "num_people": 10, "participants": ["Alba Martínez", "Amaia Segovia Perez", "Aurora Moreno", "Isabel Correas", "Isabella Correas", "Luka Montiel", "Nikole Montiel", "Paul Moreno", "Raul Moreno", "Telmo Montiel"]}, {"id": "1566602041428266", "titular": "Anyerine Sarita", "num_people": 7, "participants": ["Anyerine Sarita", "Bethunes Hines", "Camelia Mendez", "Joan Brown", "Raymond Hines", "Rowan Brown", "Victor Andujar"]}, {"id": "1566602045338852", "titular": "Lucila  Guzman", "num_people": 4, "participants": ["Elijah  Pichardo", "Hector  Antigua", "Lucila  Guzman", "Yesenia  Blandino"]}, {"id": "1566602046261028", "titular": "ORBIS SORIANO", "num_people": 12, "participants": ["AMAHIA SOFIA  SORIANO", "ARGENTINA SORIANO", "AUDRY De LA ROSA", "DARLENE DARLEEN", "INGRID VARGAS", "ISIDRO  LUNA", "MANOLO  SORIANO", "MANOLO  SORIANO D.", "MANUEL ALEJADRO SORIANO", "NIDIA  DOMINGUEZ", "ORBIS SORIANO", "ZORALLA  VARGAS"]}, {"id": "1566602048156574", "titular": "yudelka  de los santos", "num_people": 12, "participants": ["arianny de los santos", "awilda rondon", "bomar quezada", "daniel de jesus", "darielys de jesus", "justina tavarez tavarez", "kelvin calderon", "kevin calderon", "NISAURI TAVAREZ", "rashel tavarez", "YUDELKA DE LOS SANTPS", "yumilka tavarez"]}, {"id": "1566602048409140", "titular": "Elyant Mendoza", "num_people": 7, "participants": ["Daniel De Los Santos", "Elyant Mendoza", "Maiah Guerra", "Rafael Alberto De Los Santos", "Rafael Eduardo De Los Santos", "Renata De Los Santos", "Roxanna De Los Santos"]}, {"id": "1566602048728743", "titular": "Jose Luis Correas", "num_people": 1, "participants": ["Jose Luis Correas"]}, {"id": "1566602051080012", "titular": "Altagrace  Royal", "num_people": 2, "participants": ["Altagrace  Royal", "Angela  Melo de pena"]}, {"id": "1566602051544244", "titular": "Jesus Reyes", "num_people": 4, "participants": ["Jesus Reyes", "Jesus Reyes (2)", "Jesus Reyes (3)", "Jesus Reyes (4)"]}, {"id": "1566602052720886", "titular": "Elizabeth Ferreras Encarnación", "num_people": 2, "participants": ["Elizabeth Ferreras Encarnación", "Luchy Encarnación Valenzuela"]}, {"id": "1566602052852026", "titular": "Martha Cataño", "num_people": 4, "participants": ["Martha Cataño", "Martha  Cataño (2)", "Martha  Cataño (3)", "Maximiliano  Uribe"]}, {"id": "1566602054452008", "titular": "Luis alberto Grullon encarnacion", "num_people": 5, "participants": ["Diana  Diaz", "Indira  Nina", "James  Grullon", "Luis alberto Grullon encarnacion", "Luna  Grullon"]}, {"id": "1566602054486615", "titular": "Bladimit  Diaz Aguilar", "num_people": 3, "participants": ["Bladimit  Diaz Aguilar", "Nadiuska Santos", "Zoe Barrionuevo"]}, {"id": "1566602054551483", "titular": "Raluibel Martinez", "num_people": 2, "participants": ["Angel Adolphus", "Raluilda Martinez"]}, {"id": "1566602054683917", "titular": "Pamela  Ogando", "num_people": 3, "participants": ["Abril Sandoval Ogando", "Edgardo Sandoval", "Pamela  Ogando"]}, {"id": "1566602057970126", "titular": "Carole  Hilgenberg", "num_people": 6, "participants": ["Adelaida  Espinosa", "Ben Hilgenberg", "Carole  Hilgenberg", "Emma Hilgenberg", "Stella Hilgenberg", "William Ortega"]}, {"id": "1566602058817181", "titular": "Altagrace  Royal", "num_people": 2, "participants": ["Altagrace  Royal", "Gadiel  De los santos"]}, {"id": "1566602059094398", "titular": "HILDA MARIE BAUTISTA LOCIER", "num_people": 4, "participants": ["HERMES BAUTISTA", "HILDA MARIE BAUTISTA LOCIER", "LUIS GUILLERMO RONDON BAUTISTA", "ROBERTO RONDON"]}, {"id": "1566602061543064", "titular": "Daniel Munoz", "num_people": 5, "participants": ["Daniel  Muñoz", "Daniel Munoz (2)", "Daniel Munoz (3)", "Daniel Munoz (4)"]}, {"id": "1566602062892480", "titular": "EVGENIYA SIMOKHINA -", "num_people": 4, "participants": ["Ekaterbna  Demerdzhi", "EVGENIYA SIMOKHINA -", "Mariia Demetrio", "Natalia Eretina"]}, {"id": "1566602063157114", "titular": "Carla  Morales", "num_people": 6, "participants": ["Carla  Morales", "Irina Conde", "Lara Inciarte", "Luca Inciarte", "Maximiliano Inciarte", "Robinson Inciarte"]}, {"id": "1566602065144325", "titular": "yudelka  de los santos", "num_people": 1, "participants": ["yudelka  de los santos"]}, {"id": "1566602065945509", "titular": "Daniel Munoz", "num_people": 1, "participants": ["Daniel Munoz"]}, {"id": "1566602066518068", "titular": "Karen Cole", "num_people": 2, "participants": ["Karen Cole", "Marcus Cole"]}, {"id": "1566602066709561", "titular": "Emely Guzman martinez", "num_people": 2, "participants": ["Emely Guzman martinez", "Ronaldo  Fernandez"]}, {"id": "1566602067420089", "titular": "Rafael  Abreu", "num_people": 2, "participants": ["Carlina Gomez", "Rafael  Abreu"]}, {"id": "1566602068296562", "titular": "Daniel Munoz", "num_people": 4, "participants": ["Daniel  Muñoz", "Daniel Munoz (2)", "Daniel Munoz (3)"]}, {"id": "1566602071070454", "titular": "Rafael Vargas", "num_people": 2, "participants": ["Nancy Loveras", "Rafael Vargas"]}, {"id": "1566602071130448", "titular": "Javier Sanlley", "num_people": 2, "participants": ["Alejandro Chavez", "Javier Sanlley"]}, {"id": "1566602071215492", "titular": "Olga Nadal de Vergara", "num_people": 2, "participants": ["Olga Nadal de Vergara", "Ramon Vergara"]}, {"id": "1566602071482961", "titular": "Janill Lantigua", "num_people": 4, "participants": ["Daniella Romero", "Janill Lantigua", "Jonathan  Romero", "Valentina  Romero"]}, {"id": "1566602072604643", "titular": "Raquel Henriquez", "num_people": 5, "participants": ["Emma ines  Erazo", "Jorge Farias", "Margarita elizabeth Lara erazo", "Oscar  Sanchez", "Raquel Henriquez"]}, {"id": "1566602074622428", "titular": "Wendy Matos Matos", "num_people": 2, "participants": ["Pedro Hernandez", "Wendy Matos Matos"]}, {"id": "1566602075154841", "titular": "Viannerys Ferreras Encarnacion", "num_people": 1, "participants": ["Viannerys Ferreras Encarnacion"]}, {"id": "1566602076147343", "titular": "Janine Lochmann", "num_people": 4, "participants": ["Amira James", "David James", "Janine Lochmann", "Yaqueline Nicolas Santana"]}, {"id": "1566602076656912", "titular": "Javier Sanlley", "num_people": 1, "participants": ["Ruby Alejandra Najera"]}, {"id": "1566602078771386", "titular": "Janill Lantigua", "num_people": 5, "participants": ["Diego  Munne", "Jamile  Lantigua", "Jandra  Lantigua", "Lauren  Munne", "Leonora  Paulino"]}, {"id": "1566602083180209", "titular": "Rubyalejandra Najera", "num_people": 7, "participants": ["Aileen  Velarde", "Denisse  Campos", "Dora  Valencia", "Dulce Guzman", "Genesis  Lara", "Natalie  Ortiz", "Rina  Ornelas"]}, {"id": "1566602083896682", "titular": "Angel Romy Herasme Martinez", "num_people": 1, "participants": ["Angely De la Rosa"]}, {"id": "1566602084115260", "titular": "Justina Grigalaviciute", "num_people": 2, "participants": ["Jose Ruben Cruz Osuna", "Justina Grigalaviciute"]}, {"id": "1566602084606431", "titular": "WENDY ALTAGRACIA DESPRADEL CUTALS Despradel", "num_people": 2, "participants": ["Angel  Simono", "WENDY ALTAGRACIA DESPRADEL CUTALS Despradel"]}, {"id": "1566602085311648", "titular": "Jeimy Jimenez", "num_people": 3, "participants": ["Jeimy Jimenez", "Juan Rodríguez", "Laionell Cordones"]}, {"id": "1566602085618175", "titular": "Nailia Castillo", "num_people": 7, "participants": ["Amir De Los Santos", "Andy  De Los Santos", "Axel  Sanchez De Leon", "Nadir De Los Santos", "Nailia Castillo", "Yosselin De Leon", "Yulieth Luna De Leon"]}, {"id": "1566602085847948", "titular": "Ana Araceli Jimenez Batista", "num_people": 3, "participants": ["Ana Araceli Jimenez Batista", "RUBEN DARIO TINEO", "Zoe Tineo Jimenez"]}, {"id": "1566602087770802", "titular": "Ronald Vargas", "num_people": 2, "participants": ["Karla Ravelo", "Ronald Vargas"]}, {"id": "1566602087991851", "titular": "Yira Lachapelle", "num_people": 6, "participants": ["Elian  Rodriguez", "Elianyi  Rodríguez", "Elias Rodriguez", "Eliazar  Rodriguez", "Eliel  Rodriguez", "Yira Lachapelle"]}, {"id": "1566602088570394", "titular": "Carlos Mendez", "num_people": 10, "participants": ["Amelia Mendez", "Ava Mendez", "Carlos Mendez", "Kelly Mendez", "Mateo Mendez", "Maximo Mendez", "Michael Mendez", "Nadia Mendez", "Olivia  Mendez", "Veronica  Mendez"]}, {"id": "1566602089434664", "titular": "Binca Gotzeva", "num_people": 5, "participants": ["Binca Gotzeva", "Maria Gordon", "Rositsa Penova", "Tania Penova", "Yana Milena Pineda Gotzeva"]}, {"id": "1566602089465266", "titular": "Francisco Liriano", "num_people": 6, "participants": ["Anthony Calvo", "Carmen Morales", "Elohim  Liriano", "Francisco Liriano", "Margarita  Cruz", "Nashla  Guerrero"]}, {"id": "1566602089791860", "titular": "Angela Rondon", "num_people": 3, "participants": ["Angela Rondon", "Carlos Binet", "Luis Blandino"]}, {"id": "1566602092692177", "titular": "Yadira Beltre", "num_people": 2, "participants": ["Yadira Beltre"]}, {"id": "1566602093145371", "titular": "Silvia Abramovich Bar", "num_people": 4, "participants": ["Emily Rose  Bar", "Eran  Bar", "Silvia Abramovich Bar", "Sophia Elizabeth  Bar"]}, {"id": "1566602094848049", "titular": "Freidilina Cuevas", "num_people": 1, "participants": ["Freidilina Cuevas"]}, {"id": "1566602095135410", "titular": "Miguel Hernandez", "num_people": 4, "participants": ["Enrique Hernandez", "Fanny Jimenez", "Luis Miguel Hernandez", "Miguel Hernandez"]}, {"id": "1566602096607397", "titular": "Juan Carlos  Torres", "num_people": 2, "participants": ["Claudia  Ruiz", "Juan carlos Torres"]}, {"id": "1566602097764616", "titular": "Cecilia Riedemann Villa", "num_people": 5, "participants": ["Cecilia Riedemann Villa", "Mario Ibarra", "Monica Ibarra", "Ricardo Videla", "Silvia Argandoña"]}, {"id": "1566602098581877", "titular": "Griset Cruz", "num_people": 1, "participants": ["Hilda Mena"]}, {"id": "1566602099662573", "titular": "Bladimit  Diaz Aguilar", "num_people": 1, "participants": ["Bladimit  Diaz Aguilar"]}, {"id": "1566602101176336", "titular": "Robert  Mercedes", "num_people": 3, "participants": ["Joan enrique Troncoso diaz", "Josan Troncoso heredia", "Sandra elizabeth Heredia montero"]}, {"id": "1566602101704169", "titular": "Carla B", "num_people": 10, "participants": ["Carla B", "Carla B (2)", "Carla  B (3)", "Carla  B (4)", "Carla  B (5)", "Carla  B (6)", "Fred D", "Lisa R", "Michelle  R", "Sherry T"]}, {"id": "1566602101972212", "titular": "Ruddy Minaya", "num_people": 4, "participants": ["Alonso Minaya", "Diego Minaya", "Michelle Rodríguez", "Ruddy Minaya"]}, {"id": "1566602102304290", "titular": "Gabriella Bairan", "num_people": 2, "participants": ["Erick Santana", "Gabriella Bairan"]}, {"id": "1566602102490415", "titular": "Giovanny De los santos R", "num_people": 2, "participants": ["Giovanny De los santos R", "Josefina  Acosta"]}, {"id": "1566602102937305", "titular": "Leo Samuel Chicheportiche Michel", "num_people": 1, "participants": ["Leo Samuel Chicheportiche Michel"]}, {"id": "1566602103043933", "titular": "Yeresmil Cespedes", "num_people": 1, "participants": ["Chelsea Linares"]}, {"id": "1566602103166305", "titular": "Buenaventura Ballas", "num_people": 3, "participants": ["Buenaventura Ballas", "Mabel Inmaculada Lucia Pichardo de Ballas", "Thiago Mathias Ballas Pichardo"]}, {"id": "1566602103682289", "titular": "Pamela  Ogando", "num_people": 2, "participants": ["Pura Souffront", "Rolando Osoria"]}, {"id": "1566602104034054", "titular": "Karil Cabrera Castro", "num_people": 4, "participants": ["Emanuel Gilg Cabrera", "Erickson De Jesus Calderon", "Karil Cabrera Castro", "Markus Gilg"]}, {"id": "1566602104384072", "titular": "Carmen Azcuidiaz", "num_people": 4, "participants": ["Carmen Azcuidiaz", "Marian Alonso", "Ramon Azcuidiaz", "Zaida Cepero"]}, {"id": "1566602104565550", "titular": "Yeresmil Cespedes", "num_people": 4, "participants": ["Elvis  Pichardo", "Oneydis  Mora", "Yeila  Rivera", "Yeresmil Cespedes"]}, {"id": "1566602105170401", "titular": "Robert  Mercedes", "num_people": 2, "participants": ["Jorge Rafael Maria", "Robert  Mercedes"]}, {"id": "1566602105458762", "titular": "JACKIE CAROLINA SANCHEZ RODRIGUEZ", "num_people": 5, "participants": ["CRUZ CRISTINA RODRIGUEZ ROSARIO", "JACKIE CAROLINA SANCHEZ RODRIGUEZ", "JOSE MIGUEL GUAZ SANCHEZ", "JOSE RAMON GUAZ GUERRERO", "JOWELL PIMENTEL RODRIGUEZ"]}, {"id": "1566602105789143", "titular": "Giovanny De los santos R", "num_people": 3, "participants": ["Giovanny De los santos R", "Jazmin Campusano", "Oscary  Cordones"]}, {"id": "1566602106361879", "titular": "Darla Woodring", "num_people": 3, "participants": ["Darla Woodring", "Edward Hernandez", "Gia Henriquez"]}, {"id": "1566602106619219", "titular": "Giovanny De los santos R", "num_people": 1, "participants": ["Giovanny De los santos R"]}, {"id": "1566602107120282", "titular": "jakeima lopez", "num_people": 4, "participants": ["alonso areche", "angel areche", "jade areche", "jakeima lopez"]}, {"id": "1566602107932578", "titular": "Ariadna Miravete", "num_people": 3, "participants": ["Ariadna Miravete", "Manuel Hernandez", "Raimon  Miravete"]}, {"id": "1566602108164560", "titular": "Svetoslav Drumev", "num_people": 2, "participants": ["Hedmary Tapia", "Svetoslav Drumev"]}, {"id": "1566602111045702", "titular": "Saymi Lahoz", "num_people": 1, "participants": ["Saymi Lahoz"]}, {"id": "1566602112174159", "titular": "Lucy  Trinidad", "num_people": 3, "participants": ["Darling  Jimenez", "Gabriella  Acta", "Lucy  Trinidad"]}, {"id": "1566602112651427", "titular": "Agatha Alberti", "num_people": 20, "participants": ["IMCA  The cat rental store", "IMCA The cat rental store (10)", "IMCA The cat rental store (11)", "IMCA The cat rental store (12)", "IMCA The cat rental store (13)", "IMCA The cat rental store (14)", "IMCA The cat rental store (15)", "IMCA The cat rental store (16)", "IMCA The cat rental store (17)", "IMCA The cat rental store (18)", "IMCA The cat rental store (19)", "IMCA The cat rental store (2)", "IMCA The cat rental store (20)", "IMCA The cat rental store (3)", "IMCA The cat rental store (4)", "IMCA The cat rental store (5)", "IMCA The cat rental store (6)", "IMCA The cat rental store (7)", "IMCA The cat rental store (8)", "IMCA The cat rental store (9)"]}, {"id": "1566602113767924", "titular": "Alejandro Ascuasiati", "num_people": 4, "participants": ["Alejandro Ascuasiati", "Annette González", "Eva  Herbert", "Zoe  Ascuasiati"]}, {"id": "1566602114718437", "titular": "Agatha Alberti", "num_people": 10, "participants": ["IMCA  The cat rental store", "IMCA The cat rental store (10)", "IMCA The cat rental store (2)", "IMCA The cat rental store (3)", "IMCA The cat rental store (4)", "IMCA The cat rental store (5)", "IMCA The cat rental store (6)", "IMCA The cat rental store (7)", "IMCA The cat rental store (8)", "IMCA The cat rental store (9)"]}, {"id": "1566602115400584", "titular": "Laura Elizabeth Vasquez Landestoy", "num_people": 4, "participants": ["Camilo Aurelio Vasquez Landestoy", "Isaac Vasquez Landestoy", "Laura Elizabeth Vasquez Landestoy", "Tatiana Altagracia Vasquez Landestoy"]}, {"id": "1566602115402285", "titular": "LILIANA INDHIRA TORRES ESTEVEZ", "num_people": 10, "participants": ["Alexa Sofía Alvarez Torres", "Ana Guarina Estevez Mena", "Cassandra Alvarez Torres", "Lia Amelia Alvarez", "Ligia Altagracia Estevez Mena", "LILIANA INDHIRA TORRES ESTEVEZ", "Ninotchka Josefina Torres De Castro", "Ojilves De Núñez", "Yehonala de Jesús Torres De Castro", "Ymar Alexis Alvarez Peguero"]}, {"id": "1566602115914601", "titular": "KAREN CABRERA ISA", "num_people": 3, "participants": ["DENNIS CABRERA", "KAREN CABRERA ISA", "LOURDES VIRGINIA ISA"]}, {"id": "1566602116108840", "titular": "Otilio Barrientos", "num_people": 5, "participants": ["Angel Sebastian  Barrientos", "Angélica Maria  Barrientos", "Laura  Barrientos", "Otilio Barrientos", "Yonelis  De Leon"]}, {"id": "1566602118422431", "titular": "Vanessa Guzmán Rodriguez", "num_people": 1, "participants": ["Vanessa Guzmán Rodriguez"]}, {"id": "1566602119182751", "titular": "Jessica  Languasco", "num_people": 2, "participants": ["Juana  Francisco", "Lia Rochell"]}, {"id": "1566602119412429", "titular": "Delia Castillo", "num_people": 4, "participants": ["David  Miladeh", "Delia Castillo", "Ruben Pichardo", "Rusbeny elizabeth Pichardo"]}, {"id": "1566602119976318", "titular": "Kirsy Molina", "num_people": 2, "participants": ["Kirsy Molina", "Miguel Tavares"]}, {"id": "1566602121392081", "titular": "Princesa Rodriguez", "num_people": 2, "participants": ["Lissette  Rodriguez", "Princesa Rodriguez"]}, {"id": "1566602121533580", "titular": "Wendy Amparo Guerrero", "num_people": 3, "participants": ["Lucy Esther  de Jesus Sànchez", "Salma Arrabal amparo", "Wendy Amparo Guerrero"]}, {"id": "1566602121984421", "titular": "Miguel Angel Díaz Moran", "num_people": 3, "participants": ["Fabian Beltre", "Micky  Beltre", "Miguel Angel Díaz Moran"]}, {"id": "1566602123565622", "titular": "Laura Sanchez Jimenez", "num_people": 3, "participants": ["Alberto  Flores Armenteros", "Laura Sanchez Jimenez", "María del Carmen Sánchez"]}, {"id": "1566602125140250", "titular": "Heidi Inoa", "num_people": 6, "participants": ["Carlos Saladin", "Felipe Saladin Inoa", "Flor Angel Concepción", "Heidi Inoa", "Indira Inoa", "Miranda Saladin Inoa"]}, {"id": "1566602128269217", "titular": "Marco Dishney", "num_people": 1, "participants": ["Marco Dishney"]}, {"id": "1566602129788040", "titular": "Bouke Born", "num_people": 4, "participants": ["Bouke Born", "Erika  Valentin de Born", "Ingrid Joustra", "Nico Wagenmans"]}, {"id": "1566602129825027", "titular": "Luisa Martinez", "num_people": 4, "participants": ["Luis Martínez", "Luisa Martinez", "Rafaelina  Tejada", "Rossina  Martinez"]}, {"id": "1566602131257858", "titular": "DEBORAH CANDELARIO", "num_people": 3, "participants": ["ALEXA MARIA YANES VIVES", "SARAH LUCIA GARCIA PEÑA", "VERA SOFIA  PICHARDO CANDELARIO"]}, {"id": "1566602133880026", "titular": "Mariel Pichardo", "num_people": 4, "participants": ["Edme Arnaud", "Jose Sosa", "Margarita Pichardo", "Mariel Pichardo"]}, {"id": "1566602135668516", "titular": "Ivan Jimenez", "num_people": 2, "participants": ["Iván Jimenez", "Massiel Benzan"]}, {"id": "1566602136538400", "titular": "Nelisa Ogando", "num_people": 3, "participants": ["Daniella Matos", "Nelisa Ogando", "Sebastian Matos"]}, {"id": "1566602136821442", "titular": "Christian Munoz", "num_people": 4, "participants": ["Christian Munoz", "Erica  Munoz", "Sebastian  Munoz", "Yina Muñoz"]}, {"id": "1566602138435753", "titular": "Francisco Mendez", "num_people": 3, "participants": ["Alex Lehning", "Francisco Mendez", "Kristina  Lehning"]}, {"id": "1566602141005799", "titular": "Robert  Mercedes", "num_people": 2, "participants": ["Leidy Reina", "Robert  Mercedes"]}, {"id": "1566602141357117", "titular": "Murad Dixon", "num_people": 1, "participants": ["Murad Dixon"]}, {"id": "1566602142546914", "titular": "Sorangel Rijo Devers", "num_people": 2, "participants": ["Paola  Sanchez", "Sorangel Rijo Devers"]}, {"id": "1566602145845912", "titular": "Tania Pichardo", "num_people": 4, "participants": ["Leyla Christopher", "Rosie  Jimenez", "Scarlet  Batista", "Tania Pichardo"]}, {"id": "1566602146307915", "titular": "Maritza Rosario", "num_people": 45, "participants": ["Maritza Rosario"]}, {"id": "156660218811234", "titular": "Jokenni Fajardo", "num_people": 1, "participants": ["Jokenni Fajardo"]}, {"id": "1566602188125059", "titular": "Maria Reinoso", "num_people": 1, "participants": ["Maria Reinoso"]}];
+
+const LS_KEY = 'rey_momo_checkins';
+let checkins = {};
+let filterPendingOnly = false;
+let openCards = new Set();
+
+function loadCheckins() {
+  try { checkins = JSON.parse(localStorage.getItem(LS_KEY) || '{}'); }
+  catch(e) { checkins = {}; }
+}
+
+function saveCheckins() {
+  localStorage.setItem(LS_KEY, JSON.stringify(checkins));
+}
+
+function getKey(reservationId, participant) {
+  return reservationId + '::' + participant;
+}
+
+function isChecked(reservationId, participant) {
+  return !!checkins[getKey(reservationId, participant)];
+}
+
+function toggleCheckin(reservationId, participant) {
+  const key = getKey(reservationId, participant);
+  if (checkins[key]) {
+    delete checkins[key];
+  } else {
+    checkins[key] = { time: new Date().toISOString(), name: participant };
+  }
+  saveCheckins();
+  updateStats();
+  renderList(document.getElementById('searchInput').value);
+}
+
+function normalize(str) {
+  return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function highlight(text, query) {
+  if (!query) return escHtml(text);
+  const q = normalize(query);
+  const n = normalize(text);
+  let result = '';
+  let i = 0;
+  while (i < text.length) {
+    const idx = n.indexOf(q, i);
+    if (idx === -1) { result += escHtml(text.slice(i)); break; }
+    result += escHtml(text.slice(i, idx));
+    result += '<mark>' + escHtml(text.slice(idx, idx + q.length)) + '</mark>';
+    i = idx + q.length;
+  }
+  return result;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function getInitials(name) {
+  return name.trim().split(/\s+/).slice(0,2).map(w=>w[0].toUpperCase()).join('');
+}
+
+function formatTime(iso) {
+  const d = new Date(iso);
+  return d.toLocaleTimeString('es-DO', {hour:'2-digit', minute:'2-digit'});
+}
+
+function updateStats() {
+  const totalRes = DATA.length;
+  let checkedPeople = 0;
+  DATA.forEach(r => {
+    r.participants.forEach(p => {
+      if (isChecked(r.id, p)) checkedPeople++;
+    });
+  });
+  document.getElementById('totalCount').textContent = totalRes;
+  document.getElementById('checkedCount').textContent = checkedPeople;
+}
+
+function toggleFilter() {
+  filterPendingOnly = !filterPendingOnly;
+  const btn = document.getElementById('filterPending');
+  btn.classList.toggle('active', filterPendingOnly);
+  renderList(document.getElementById('searchInput').value);
+}
+
+function renderList(query) {
+  const q = normalize(query || '');
+  const list = document.getElementById('reservationsList');
+  const empty = document.getElementById('emptyState');
+
+  let filtered = DATA.filter(r => {
+    const matchesTitular = normalize(r.titular).includes(q);
+    const matchesId = normalize(r.id).includes(q);
+    const matchesParticipant = r.participants.some(p => normalize(p).includes(q));
+    const matchesQuery = !q || matchesTitular || matchesId || matchesParticipant;
+
+    if (!matchesQuery) return false;
+
+    if (filterPendingOnly) {
+      const allChecked = r.participants.every(p => isChecked(r.id, p));
+      if (allChecked) return false;
+    }
+
+    return true;
+  });
+
+  document.getElementById('resultsInfo').textContent =
+    q || filterPendingOnly
+      ? `${filtered.length} resultado${filtered.length !== 1 ? 's' : ''} de ${DATA.length} reservaciones`
+      : `${DATA.length} reservaciones · ${Object.keys(checkins).length} check-ins registrados`;
+
+  if (filtered.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  list.innerHTML = filtered.map(r => {
+    const checkedCount = r.participants.filter(p => isChecked(r.id, p)).length;
+    const total = r.participants.length;
+    const allDone = checkedCount === total;
+    const partDone = checkedCount > 0 && !allDone;
+    const isOpen = openCards.has(r.id);
+
+    // Filter participants if search matches specific ones
+    const showParticipants = r.participants;
+
+    return `
+    <div class="reservation-card ${allDone ? 'fully-checked' : partDone ? 'partially-checked' : ''} ${isOpen ? 'open' : ''}" id="card-${r.id}">
+      <div class="card-header" onclick="toggleCard('${r.id}')">
+        <div class="titular-avatar">${getInitials(r.titular)}</div>
+        <div class="card-info">
+          <div class="titular-name">${highlight(r.titular, query)}</div>
+          <div class="confirmation-id">${highlight(r.id, query)}</div>
+        </div>
+        <div class="card-meta">
+          <div class="people-count">${checkedCount}/${total}</div>
+          <div class="checkin-progress ${allDone ? 'all-done' : ''}">${allDone ? '✓ Completo' : 'participantes'}</div>
+        </div>
+        <div class="expand-icon">▼</div>
+      </div>
+      <div class="participants-panel">
+        ${showParticipants.map(p => {
+          const checked = isChecked(r.id, p);
+          const time = checked ? formatTime(checkins[getKey(r.id, p)].time) : '';
+          return `
+          <div class="participant-row ${checked ? 'checked' : ''}" onclick="toggleCheckin('${r.id}', ${JSON.stringify(p)})">
+            <div class="check-circle">${checked ? '✓' : ''}</div>
+            <div class="participant-name">${highlight(p, query)}</div>
+            ${checked ? `<div class="checkin-time">${time}</div>` : ''}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCard(id) {
+  if (openCards.has(id)) {
+    openCards.delete(id);
+  } else {
+    openCards.add(id);
+  }
+  const card = document.getElementById('card-' + id);
+  if (card) card.classList.toggle('open', openCards.has(id));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function clearCheckins() {
+  if (!confirm('¿Resetear TODOS los check-ins? Esta acción no se puede deshacer.')) return;
+  checkins = {};
+  saveCheckins();
+  updateStats();
+  renderList(document.getElementById('searchInput').value);
+  showToast('Check-ins reseteados');
+}
+
+function exportLog() {
+  const rows = [['Confirmación', 'Titular', 'Participante', 'Hora Check-In']];
+  DATA.forEach(r => {
+    r.participants.forEach(p => {
+      const key = getKey(r.id, p);
+      if (checkins[key]) {
+        rows.push([r.id, r.titular, p, new Date(checkins[key].time).toLocaleString('es-DO')]);
+      }
+    });
+  });
+
+  if (rows.length === 1) { showToast('No hay check-ins aún'); return; }
+
+  const csv = rows.map(row => row.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'checkin_rey_momo_' + new Date().toISOString().slice(0,16).replace('T','_') + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`✓ Exportado ${rows.length - 1} check-ins`);
+}
+
+let debounceTimer;
+document.getElementById('searchInput').addEventListener('input', e => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => renderList(e.target.value), 200);
+});
+
+// Init
+loadCheckins();
+updateStats();
+renderList('');
+</script>
+</body>
+</html>
